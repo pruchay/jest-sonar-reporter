@@ -1,24 +1,28 @@
 # jest-sonar-reporter
 
-[![Build Status](https://travis-ci.org/3dmind/jest-sonar-reporter.svg?branch=master)](https://travis-ci.org/3dmind/jest-sonar-reporter)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=jest-sonar-reporter&metric=alert_status)](https://sonarcloud.io/dashboard?id=jest-sonar-reporter)
-
 jest-sonar-reporter is a custom results processor for Jest.
 The processor converts Jest's output into Sonar's
 [generic test data](https://docs.sonarqube.org/display/SONAR/Generic+Test+Data) format.
+
+This is fork from [3dmind jest-sonar-reporter](https://github.com/3dmind/jest-sonar-reporter) with some small fixes.
+
+### What was changed?
+1. Fixed error with strange characters (for example `expect([107mrec)`) - SQ does not work with these characters.
+2. Previously in report file the path to checked file was like `"/usr/src/app/src/modules/<path>"` so I change file path to `"src/modules/<path>"`
+3. Fixed error with recursive creating folder (if your directory for reports is like `<root>/folder/anotherFolder/reports`) 
 
 ## Installation
 
 Using npm:
 
 ```bash
-$ npm i -D jest-sonar-reporter
+$ npm i -D pruchay/jest-sonar-reporter
 ```
 
 Using yarn:
 
 ```bash
-$ yarn add -D jest-sonar-reporter
+$ yarn add -D pruchay/jest-sonar-reporter
 ```
 
 ## Configuration
@@ -33,11 +37,14 @@ Configure Jest in your `package.json` to use `jest-sonar-reporter` as a custom r
 }
 ```
 
+> Looks like Jest try to run coverage report even if I don't ask him ([more in this issue](https://github.com/facebook/jest/issues/10851)).
+
 Configure Sonar to import the test results. Add the `sonar.testExecutionReportPaths` property to your
 `sonar-project.properties` file.
 
 ```properties
-sonar.testExecutionReportPaths=test-report.xml
+sonar.javascript.lcov.reportPaths=coverage/lcov.info
+sonar.testExecutionReportPaths=coverage/test-report.xml
 ```
 
 ## Customization
@@ -118,7 +125,7 @@ NODE_ENV=test npm run test
 
 ## Usage
 
-1. Run Jest to execute your tests.
+1. Run Jest to execute your tests with coverage flag (for example `jest --coverage`).
 
 Using npm:
 
@@ -132,7 +139,26 @@ Using yarn:
 $ yarn run test
 ```
 
-2. Run sonar-scanner to import the test results.
+2. Configure your SQ configuration file
+
+For example:
+```properties
+# Source
+sonar.sources=src
+sonar.exclusions=**/__tests__/**/*
+
+# Unit tests
+sonar.tests=src
+sonar.test.inclusions=**/__tests__/**/*.test.js
+
+# Test Coverage & Execution
+sonar.javascript.lcov.reportPaths=coverage/lcov.info
+sonar.testExecutionReportPaths=coverage/test-report.xml
+```
+
+Read official SQ documentation for more information about how to Configure SQ. 
+
+3. Run sonar-scanner to import the test results.
 
 ```bash
 $ sonar-scanner
